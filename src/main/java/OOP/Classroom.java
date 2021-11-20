@@ -2,35 +2,20 @@ package OOP;
 
 import java.io.Serializable;
 
-public class Classroom implements Serializable {
+public class Classroom extends Organization implements Serializable {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private String ID, Name;
 	private int School_year;
 	private String department_ID;
 	public Classroom() {
 
 	}
 	public Classroom(String iD, String name, int school_year, String department_ID, Department department) {
-		super();
-		ID = iD;
-		Name = name;
+		super(iD, name);
 		School_year = school_year;
 		this.department_ID = department_ID;
-	}
-	public String getID() {
-		return ID;
-	}
-	public void setID(String iD) {
-		ID = iD;
-	}
-	public String getName() {
-		return Name;
-	}
-	public void setName(String name) {
-		Name = name;
 	}
 	public int getSchool_year() {
 		return School_year;
@@ -48,5 +33,15 @@ public class Classroom implements Serializable {
 	public String toString() {
 		return "Class [getID()=" + getID() + ", getName()=" + getName() + ", getSchool_year()=" + getSchool_year()
 				+ ", getDepartment_ID()=" + getDepartment_ID() + "]";
+	}
+	@Override
+	// Check if the ID is identical?
+	public int compareTo(Organization o) {
+		// TODO Auto-generated method stub
+		if (this.getID().equals(o.getID())) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 }
