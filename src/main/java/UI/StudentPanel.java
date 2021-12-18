@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,6 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -76,7 +78,7 @@ public class StudentPanel extends JPanel {
 	 */
 	public StudentPanel() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		setLayout(null);
-		setBounds(200, 68, 1034, 485);
+		setBounds(200, 68, 1034, 444);
 		JLabel btnTitle = new JLabel("Thông tin về sinh viên");
 		btnTitle.setForeground(new Color(255, 69, 0));
 		btnTitle.setFont(new Font("Tahoma", Font.BOLD, 18));
@@ -129,7 +131,7 @@ public class StudentPanel extends JPanel {
 		add(lbGender);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 310, 1014, 165);
+		scrollPane.setBounds(10, 302, 1014, 112);
 		add(scrollPane);
 		
 		tblist = new JTable();
@@ -190,13 +192,7 @@ public class StudentPanel extends JPanel {
 		btnEdit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					if (txtId.getText().isEmpty() || txtFName.getText().isEmpty()
-							|| txtLName.getText().isEmpty() || txtAddress.getText().isEmpty()
-							|| txtIdClass.getText().isEmpty() || txtAcademic.getText().isEmpty()) {
-							JOptionPane.showMessageDialog(null, "Các trường không được để trống !", "Lỗi", JOptionPane.ERROR_MESSAGE);
-						} else {
-							edit(s);
-						}
+					edit(s);
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -209,7 +205,7 @@ public class StudentPanel extends JPanel {
 		btnEdit.setBounds(698, 75, 136, 34);
 		add(btnEdit);
 		
-		JButton btnImport = new JButton("Đọc file");
+		JButton btnImport = new JButton("Đọc Excel");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -275,11 +271,11 @@ public class StudentPanel extends JPanel {
 		add(btnFind);
 		
 		txtFind = new JTextField();
-		txtFind.setBounds(552, 154, 282, 33);
+		txtFind.setBounds(698, 154, 136, 33);
 		add(txtFind);
 		txtFind.setColumns(10);
 		
-		JButton btnExport = new JButton("Xuất file");
+		JButton btnExport = new JButton("Xuất file txt");
 		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -344,12 +340,12 @@ public class StudentPanel extends JPanel {
 		JLabel lbAddress = new JLabel("Địa chỉ");
 		lbAddress.setForeground(Color.RED);
 		lbAddress.setFont(new Font("Tahoma", Font.BOLD, 15));
-		lbAddress.setBounds(26, 237, 124, 25);
+		lbAddress.setBounds(26, 234, 124, 25);
 		add(lbAddress);
 		
 		txtAddress = new JTextField();
 		txtAddress.setColumns(10);
-		txtAddress.setBounds(187, 238, 153, 22);
+		txtAddress.setBounds(187, 232, 153, 22);
 		add(txtAddress);
 		
 		JLabel tbLName = new JLabel("Tên sinh viên");
@@ -366,13 +362,30 @@ public class StudentPanel extends JPanel {
 		JLabel lbIdClass = new JLabel("Mã lớp");
 		lbIdClass.setForeground(Color.RED);
 		lbIdClass.setFont(new Font("Tahoma", Font.BOLD, 15));
-		lbIdClass.setBounds(26, 277, 124, 25);
+		lbIdClass.setBounds(26, 267, 124, 25);
 		add(lbIdClass);
 		
 		txtIdClass = new JTextField();
 		txtIdClass.setColumns(10);
-		txtIdClass.setBounds(187, 278, 153, 22);
+		txtIdClass.setBounds(187, 270, 153, 22);
 		add(txtIdClass);
+		
+		JButton btnImportTxt = new JButton("Đọc file txt");
+		btnImportTxt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ImportTxt();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnImportTxt.setIcon(new ImageIcon("Icon\\export.png"));
+		btnImportTxt.setForeground(new Color(112, 128, 144));
+		btnImportTxt.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnImportTxt.setBounds(552, 152, 136, 34);
+		add(btnImportTxt);
 	}
 	
 	public void clean() {
@@ -663,7 +676,44 @@ public class StudentPanel extends JPanel {
 		
 	}
 	
-	
+	public void ImportTxt() throws IOException {
+		FileInputStream file = null;
+		ObjectInputStream ois = null;
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle("Open Text Files");
+		int textChooser = chooser.showOpenDialog(null);
+		if (textChooser == JFileChooser.APPROVE_OPTION) {
+			try {
+				File txtFile = chooser.getSelectedFile();
+				file = new FileInputStream(txtFile);
+				ois = new ObjectInputStream(file);
+				student = new Student[model.getRowCount()];
+				ArrayList<Student> List = new ArrayList<Student>();
+				for (int i=0; i<model.getRowCount(); i++) {
+					student[i] = (Student) ois.readObject();
+					List.add(student[i]);
+		        }
+				
+				for (int i=0; i<List.size(); i++) {
+					System.out.println(List.get(i));
+					model.addRow(new Object[] {List.get(i).getID(), List.get(i).getFirstname(), 
+						List.get(i).getLastname(), List.get(i).getGender(),
+						List.get(i).getAcadamic_year(), List.get(i).getAddress(),
+						List.get(i).getClass_ID()});
+				}
+				System.out.println();
+				System.out.println("----------------------------------------\n");
+				file.close();
+				ois.close();
+				JOptionPane.showMessageDialog(null, "Đọc file thành công!");
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Lỗi khi đọc file!");
+			}
+		}
+		
+	}
 	
 	public void exportFile() throws IOException {
 		

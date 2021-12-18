@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,6 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -70,7 +72,7 @@ public class ScorePanel extends JPanel {
 	 */
 	public ScorePanel() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		setLayout(null);
-		setBounds(200, 68, 1034, 476);
+		setBounds(200, 68, 1034, 421);
 		
 		JLabel btnTitle = new JLabel("Thông tin về điểm");
 		btnTitle.setForeground(new Color(205, 133, 63));
@@ -112,7 +114,7 @@ public class ScorePanel extends JPanel {
 		add(txtMid);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 245, 1014, 217);
+		scrollPane.setBounds(10, 245, 1014, 158);
 		add(scrollPane);
 		
 		tblist = new JTable();
@@ -208,7 +210,7 @@ public class ScorePanel extends JPanel {
 		btnEdit.setBounds(698, 75, 136, 34);
 		add(btnEdit);
 		
-		JButton btnImport = new JButton("Đọc file");
+		JButton btnImport = new JButton("Đọc Excel");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -278,11 +280,11 @@ public class ScorePanel extends JPanel {
 		add(btnFind);
 		
 		txtFind = new JTextField();
-		txtFind.setBounds(552, 154, 282, 33);
+		txtFind.setBounds(698, 154, 136, 33);
 		add(txtFind);
 		txtFind.setColumns(10);
 		
-		JButton btnExport = new JButton("Xuất file");
+		JButton btnExport = new JButton("Xuất file txt");
 		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -354,7 +356,23 @@ public class ScorePanel extends JPanel {
 		txtEnd.setColumns(10);
 		txtEnd.setBounds(187, 192, 165, 28);
 		add(txtEnd);
-
+		
+		JButton btnImportTxt = new JButton("Đọc file txt");
+		btnImportTxt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ImportTxt();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnImportTxt.setIcon(new ImageIcon("Icon\\export.png"));
+		btnImportTxt.setForeground(new Color(112, 128, 144));
+		btnImportTxt.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnImportTxt.setBounds(552, 152, 136, 34);
+		add(btnImportTxt);
 	}
 	
 	public void clean() {
@@ -442,15 +460,6 @@ public class ScorePanel extends JPanel {
 			int count = 0;
 			while (resultSet.next()) {
 				if (resultSet.getString(1).equals(sc.getSubject_ID())) {
-					count++;
-				}
-			}
-			resultSet = null;
-			statement =  conn.createStatement();
-			resultSet =  statement.executeQuery("SELECT id FROM student");
-			count = 0;
-			while (resultSet.next()) {
-				if (resultSet.getString(1).equals(sc.getStudent_ID())) {
 					count++;
 				}
 			}
@@ -633,7 +642,45 @@ public class ScorePanel extends JPanel {
 		
 	}
 	
-	
+	public void ImportTxt() throws IOException {
+		FileInputStream file = null;
+		ObjectInputStream ois = null;
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle("Open Text Files");
+		int textChooser = chooser.showOpenDialog(null);
+		if (textChooser == JFileChooser.APPROVE_OPTION) {
+			try {
+				File txtFile = chooser.getSelectedFile();
+				file = new FileInputStream(txtFile);
+				ois = new ObjectInputStream(file);
+				score = new Score[model.getRowCount()];
+				ArrayList<Score> List = new ArrayList<Score>();
+				for (int i=0; i<model.getRowCount(); i++) {
+					score[i] = (Score) ois.readObject();
+					List.add(score[i]);
+		        }
+				
+				for (int i=0; i<List.size(); i++) {
+					System.out.println(List.get(i));
+					model.addRow(new Object[] {List.get(i).getSubject_ID(), List.get(i).getStudent_ID(), 
+							List.get(i).getScore_Midterm(),
+							List.get(i).getScore_Endterm(), 
+							List.get(i).Coefficient_10(List.get(i).getScore_Midterm(), List.get(i).getScore_Endterm()),
+							List.get(i).Coefficient_4(List.get(i).Coefficient_10(List.get(i).getScore_Midterm(), List.get(i).getScore_Endterm()))});
+				}
+				System.out.println();
+				System.out.println("----------------------------------------\n");
+				file.close();
+				ois.close();
+				JOptionPane.showMessageDialog(null, "Đọc file thành công!");
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Lỗi khi đọc file!");
+			}
+		}
+		
+	}
 	
 	public void exportFile() throws IOException {
 		

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,6 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -73,7 +75,7 @@ public class ClassroomPanel extends JPanel {
 	 */
 	public ClassroomPanel() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		setLayout(null);
-		setBounds(200, 68, 1034, 450);
+		setBounds(200, 68, 1034, 440);
 		
 		JLabel btnTitle = new JLabel("Thông tin về lớp");
 		btnTitle.setForeground(Color.BLUE);
@@ -115,7 +117,7 @@ public class ClassroomPanel extends JPanel {
 		add(txtSchoolYear);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 238, 1014, 202);
+		scrollPane.setBounds(10, 238, 1014, 179);
 		add(scrollPane);
 		
 		tblist = new JTable();
@@ -191,7 +193,7 @@ public class ClassroomPanel extends JPanel {
 		btnEdit.setBounds(698, 75, 136, 34);
 		add(btnEdit);
 		
-		JButton btnImport = new JButton("Đọc file");
+		JButton btnImport = new JButton("Đọc Excel");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -257,11 +259,11 @@ public class ClassroomPanel extends JPanel {
 		add(btnFind);
 		
 		txtFind = new JTextField();
-		txtFind.setBounds(552, 154, 282, 33);
+		txtFind.setBounds(698, 154, 136, 33);
 		add(txtFind);
 		txtFind.setColumns(10);
 		
-		JButton btnExport = new JButton("Xuất file");
+		JButton btnExport = new JButton("Xuất file txt");
 		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -333,6 +335,23 @@ public class ClassroomPanel extends JPanel {
 		txtIdDepartment.setColumns(10);
 		txtIdDepartment.setBounds(187, 200, 111, 28);
 		add(txtIdDepartment);
+		
+		JButton btnImportTxt = new JButton("Đọc file txt");
+		btnImportTxt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ImportTxt();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnImportTxt.setIcon(new ImageIcon("Icon\\export.png"));
+		btnImportTxt.setForeground(new Color(112, 128, 144));
+		btnImportTxt.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnImportTxt.setBounds(552, 152, 136, 34);
+		add(btnImportTxt);
 	}
 	
 	public void clean() {
@@ -358,6 +377,7 @@ public class ClassroomPanel extends JPanel {
 		}
 	}
 	
+	// Lấy dữ liệu từ cơ sở dữ liệu
 	public ResultSet view() {
 		ResultSet resultSet = null;
 		String query = "SELECT * FROM class";
@@ -371,7 +391,7 @@ public class ClassroomPanel extends JPanel {
 		return resultSet;
 	}
 	
-	
+	// Đổ dữ liệu ra bảng
 	public void render(ResultSet resultSet) {
 		try {
 			while(resultSet.next()) {
@@ -392,6 +412,7 @@ public class ClassroomPanel extends JPanel {
 		}
 	}
 	
+	// Chức năng thêm
 	public void add(Classroom c) throws SQLException {
 		c.setID(txtId.getText());
 		c.setName(txtName.getText());
@@ -447,7 +468,8 @@ public class ClassroomPanel extends JPanel {
 			}
 		}
 	}
-	
+
+	// Chức năng sửa
 	public void edit(Classroom c) throws SQLException {
 		conn = DriverManager.getConnection(URL, USER, PASSWORD);
 		
@@ -494,6 +516,7 @@ public class ClassroomPanel extends JPanel {
 		}	
 	}
 	
+	// Chức năng xóa
 	public void delete() {
 		String deleteFK_student= "DELETE FROM student WHERE class_id= ?";
 		String deleteFK_score = "DELETE FROM score WHERE student_id IN (SELECT id FROM student WHERE class_id=?)";
@@ -526,6 +549,7 @@ public class ClassroomPanel extends JPanel {
 		}
 	}
 	
+	// Chức năng tìm kiếm
 	public ResultSet find() {
 		ResultSet resultSet = null;
 		int rows = model.getRowCount(); 
@@ -555,6 +579,7 @@ public class ClassroomPanel extends JPanel {
 		return resultSet;
 	}
 	
+	// Chức năng đọc file excel
 	public void ImportExcel() throws IOException {
 		FileInputStream file = null;
 		BufferedInputStream bis = null;
@@ -593,8 +618,46 @@ public class ClassroomPanel extends JPanel {
 		
 	}
 	
+	// Chức năng đọc file txt
+	public void ImportTxt() throws IOException {
+		FileInputStream file = null;
+		ObjectInputStream ois = null;
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle("Open Text Files");
+		int textChooser = chooser.showOpenDialog(null);
+		if (textChooser == JFileChooser.APPROVE_OPTION) {
+			try {
+				File txtFile = chooser.getSelectedFile();
+				file = new FileInputStream(txtFile);
+				ois = new ObjectInputStream(file);
+				classes = new Classroom[model.getRowCount()];
+				ArrayList<Classroom> List = new ArrayList<Classroom>();
+				for (int i=0; i<model.getRowCount(); i++) {
+					classes[i] = (Classroom) ois.readObject();
+					List.add(classes[i]);
+		        }
+				
+				for (int i=0; i<List.size(); i++) {
+					System.out.println(List.get(i));
+					model.addRow(new Object[] {List.get(i).getID(), List.get(i).getName(), List.get(i).getSchool_year(), 
+							List.get(i).getDepartment_ID()});
+				}
+				System.out.println();
+				System.out.println("----------------------------------------\n");
+			
+				file.close();
+				ois.close();
+				JOptionPane.showMessageDialog(null, "Đọc file thành công!");
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Lỗi khi đọc file!");
+			}
+		}
+		
+	}
 	
-	
+	// Chức năng xuất file txt
 	public void exportFile() throws IOException {
 		
 		
@@ -630,6 +693,7 @@ public class ClassroomPanel extends JPanel {
 		 }
 	}
 	
+	// Chức năng xuất file excel
 	public void exportExcel(JTable table) {
 		 FileOutputStream fos = null;
 		 BufferedOutputStream bos = null;
@@ -699,6 +763,7 @@ public class ClassroomPanel extends JPanel {
     		 }
 	}
 	
+	// Chức năng sắp xếp
 	public ResultSet sort() {
 		ResultSet resultSet = null;
 		String query = "SELECT * FROM class ORDER BY department_id ASC";

@@ -19,6 +19,7 @@ import UI.ClassroomPanel;
 import UI.DepartmentPanel;
 import UI.Home;
 import UI.ScorePanel;
+import UI.StatisticalPanel;
 import UI.StudentPanel;
 import UI.SubjectPanel;
 
@@ -57,6 +58,7 @@ public class MainUI extends JFrame {
 	private StudentPanel sp;
 	private SubjectPanel sup;
 	private ScorePanel scp;
+	private StatisticalPanel stp;
 
 	/**
 	 * Launch the application.
@@ -250,6 +252,27 @@ public class MainUI extends JFrame {
 		mniScore.setIcon(new ImageIcon("Icon\\Actions-document-edit-icon-16.png"));
 		mniScore.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.ALT_DOWN_MASK));
 		mnManage.add(mniScore);
+		
+		JMenuItem mntmNewMenuItem = new JMenuItem("Thống kê");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (stp == null) {
+					try {
+						stp = new StatisticalPanel();
+					} catch (InstantiationException | IllegalAccessException | ClassNotFoundException
+							| SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					ImageIcon icon = new ImageIcon("Icon\\class.png");
+					tbMainPanel.addTab("Thống kê điểm trung bình tích lũy", icon, stp, "Thống kê điểm trung bình tích lũy");
+				}
+				tbMainPanel.setSelectedComponent(stp);	
+			}
+		});
+		mntmNewMenuItem.setIcon(new ImageIcon("Icon\\class.png"));
+		mntmNewMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.ALT_DOWN_MASK));
+		mnManage.add(mntmNewMenuItem);
 		
 		JMenu mnOther = new JMenu("Khác");
 		mnOther.setFont(new Font("Segoe UI", Font.BOLD, 16));

@@ -61,8 +61,6 @@ public class Score implements calcCoefficient_score, Serializable {
 	@Override
 	public double Coefficient_10(double score_Midterm, double score_Endterm) {
 		// TODO Auto-generated method stub
-//		score_Midterm = getScore_Midterm();
-//		score_Endterm = getScore_Endterm();
 		double result = (score_Midterm + score_Endterm) / 2.0;
 		return (double)Math.round(result * 100) / 100;
 	}

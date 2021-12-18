@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.ref.Cleaner.Cleanable;
 import java.sql.Connection;
@@ -196,7 +197,7 @@ public class DepartmentPanel extends JPanel {
 		btnEdit.setBounds(698, 75, 136, 34);
 		add(btnEdit);
 		
-		JButton btnImport = new JButton("Đọc file");
+		JButton btnImport = new JButton("Đọc Excel");
 		btnImport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -267,11 +268,11 @@ public class DepartmentPanel extends JPanel {
 		add(btnFind);
 		
 		txtFind = new JTextField();
-		txtFind.setBounds(552, 154, 282, 27);
+		txtFind.setBounds(698, 154, 136, 31);
 		add(txtFind);
 		txtFind.setColumns(10);
 		
-		JButton btnExport = new JButton("Xuất file");
+		JButton btnExport = new JButton("Xuất file txt");
 		btnExport.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -327,6 +328,23 @@ public class DepartmentPanel extends JPanel {
 		btnSort.setFont(new Font("Tahoma", Font.BOLD, 12));
 		btnSort.setBounds(698, 191, 136, 34);
 		add(btnSort);
+		
+		JButton btnImportTxt = new JButton("Đọc file txt");
+		btnImportTxt.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					ImportTxt();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnImportTxt.setIcon(new ImageIcon("Icon\\export.png"));
+		btnImportTxt.setForeground(new Color(112, 128, 144));
+		btnImportTxt.setFont(new Font("Tahoma", Font.BOLD, 12));
+		btnImportTxt.setBounds(552, 152, 136, 34);
+		add(btnImportTxt);
 	}
 	public void clean() {
 		txtId.setEditable(true);
@@ -560,7 +578,41 @@ public class DepartmentPanel extends JPanel {
 		
 	}
 	
-	
+	public void ImportTxt() throws IOException {
+		FileInputStream file = null;
+		ObjectInputStream ois = null;
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle("Open Text Files");
+		int textChooser = chooser.showOpenDialog(null);
+		if (textChooser == JFileChooser.APPROVE_OPTION) {
+			try {
+				File txtFile = chooser.getSelectedFile();
+				file = new FileInputStream(txtFile);
+				ois = new ObjectInputStream(file);
+				department = new Department[model.getRowCount()];
+				ArrayList<Department> List = new ArrayList<Department>();
+				for (int i=0; i<model.getRowCount(); i++) {
+					department[i] = (Department) ois.readObject();
+					List.add(department[i]);
+		        }
+				
+				for (int i=0; i<List.size(); i++) {
+					System.out.println(List.get(i));
+					model.addRow(new Object[] {List.get(i).getID(), List.get(i).getName(), List.get(i).getPhone()});
+				}
+				System.out.println();
+				System.out.println("----------------------------------------\n");
+				file.close();
+				ois.close();
+				JOptionPane.showMessageDialog(null, "Đọc file thành công!");
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(null, "Lỗi khi đọc file!");
+			}
+		}
+		
+	}
 	
 	public void exportFile() throws IOException {
 		
